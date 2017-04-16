@@ -126,9 +126,16 @@ public:
 player *P;
 void add_record()
 {
-	
+	srand(time(NULL));
+	char NAME[100] = "win_rate_data";
+	int a;
+	char c[1000];
+	sprintf(c, "_%d", rand() % 1000);
 
-	f=fopen("win_rate_data.txt", "w");
+	
+	strcat(NAME, c);
+	strcat(NAME, ".txt");
+	f=fopen(NAME, "w");
 }
 //n is for the number of players and a is cards'order 
 void JoinGame(int &playnum, suit_list &a)
@@ -367,9 +374,12 @@ cout << "you are player 3~~~" << endl;
 			cout << endl;
 			P[0].display();
 			P[1].display();
+			P[2].display();
+			P[3].display();
+			cout << endl;
 			cout << "banker final point :" << P[0].score() << endl;
-
-			cout << "player final point :" << P[1].score() << endl;
+			
+			cout << "player final point :" << P[3].score() << endl;
 			cout << endl;
 			//set_record(P[0], P[1], 
 
@@ -394,7 +404,7 @@ cout << "you are player 3~~~" << endl;
 			fprintf(f, "result:\n\ngame set: %.0f \nwin: %.0f\nlose: %.0f\ndraw: %.0f\n\n", (win + draw + lose), win, lose, draw);
 			fprintf(f, "win rate: %.3f%%\n", wr);
 			fprintf(f, "AI's point bigger: %d \nPlayer's point bigger: %d\n", AI_cards_bigger, Playercardsbigger);
-			fprintf(f, "AI burst: %d\nPlayer burst: %d\nFive cards: %d\n\n", AI_Burst, Player_Burst, Five);
+			fprintf(f, "AI burst: %d\nAI Player 1 burst: %d\nAI Player 2 burst: %d\nPlayer burst: %d\nFive cards: %d\n\n", AI_Burst,AI_Player_1_Burst,AI_Player_2_Burst ,Player_Burst, Five);
 			fprintf(f, "AI's average score (without burst): %.3f \n", AI_ave / A_num);
 			fprintf(f, "AI's average card hold: %.3f \n", AC / (win + draw + lose));
 			fprintf(f, "Plyer's average score (without burst): %.3f \n", Player_ave / P_num);
