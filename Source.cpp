@@ -12,6 +12,8 @@ int player_num = 0;
 	double  lose = 0;
 	int AI_Burst = 0;
 	int Player_Burst = 0;
+	int AI_Player_1_Burst = 0;
+	int AI_Player_2_Burst = 0;
 	int Playercardsbigger = 0;
 	int AI_cards_bigger = 0;
 	double AI_ave = 0;
@@ -124,6 +126,8 @@ public:
 player *P;
 void add_record()
 {
+	
+
 	f=fopen("win_rate_data.txt", "w");
 }
 //n is for the number of players and a is cards'order 
@@ -137,7 +141,7 @@ void JoinGame(int &playnum, suit_list &a)
 	cout << "Game Start!" << endl;
 	//cout << "How many player?" << endl;
 	//cin >> temp;
-	temp = 2;
+	temp = 4;
 	playnum = temp;
 
 
@@ -233,7 +237,88 @@ void set_record(player a,player b,int c)
 	
 
 }
+void under17(player P)
+{
+	while (P.score() != -1)
+	{
+		if (P.score() <= 17)
+		{
+			dealing(P);
+			broadcast_info(P, true);
+		}
+		else
+			break;
+	}
 
+}
+void start_up(player *P)
+{
+	for (int i = 1; i < player_num; i++)
+	{
+		dealing(P[i]);
+		//broadcast_info(P[i], 0);
+
+	}
+	broadcast_info(P[3], 0);
+	dealing(P[0]);
+	broadcast_info(P[0], true);
+	for (int i = 1; i < player_num; i++)
+	{
+		dealing(P[i]);
+		broadcast_info(P[i], 1);
+
+	}
+	dealing(P[0]);
+
+}
+void AI_progress(player &P)
+{
+	while (P.score() != -1)
+	{
+		if (P.score() <= 17)
+		{
+			dealing(P);
+			broadcast_info(P, true);
+		}
+		else
+			break;
+	}
+	
+	if (P.score() == -1)
+	{
+		cout << "player " << P.player_id << " burst " << endl;
+		P.display();
+	}
+}
+void basic_progress(player* &P)
+{
+	
+	AI_progress(P[1]);
+	if (P[1].score() == -1)
+		AI_Player_1_Burst++;
+	AI_progress(P[2]);
+	if (P[2].score() == -1)
+		AI_Player_2_Burst++;
+	P[3].display();
+	cout << "player current point :" << P[3].score() << endl;
+	while (P[3].score() != -1)
+	{
+		cout << "\ndraw card?" << endl;
+		if (yes_no())
+		{
+			dealing(P[3]);
+
+			broadcast_info(P[3], true);
+			P[3].display();
+			cout << "player current point :" << P[3].score() << endl;
+
+		}
+		else
+			break;
+	}
+	AI_progress(P[0]);
+
+}
 
 int main3()
 {
@@ -259,97 +344,66 @@ int main3()
 
 int main()
 {
-    
+	bool end = true;
 	add_record();
 	JoinGame(player_num, list);
-	player	*P = new player[player_num];
-	for (int i = 0; i < player_num; i++)
-		P[i].player_set(i);
+cout << "you are player 3~~~" << endl;
 
-
-
-	//list.display();
-	cout << endl;
-	cout << endl;
-
-
-	//basic progress
+	while (end)
 	{
-		dealing(P[1]);
-		broadcast_info(P[1], 0);
+		//list.display();
+		cout << endl;
+		cout << endl;
+		player	*P = new player[player_num];
+		for (int i = 0; i < player_num; i++)
+			P[i].player_set(i);
 
-		dealing(P[0]);
-		broadcast_info(P[0], true);
-		dealing(P[1]);
-		broadcast_info(P[1], true);
-		dealing(P[0]);
+	
+		start_up(P);
+		basic_progress(P);
 
-		P[1].display();
-		cout << "player current point :" << P[1].score() << endl;
-	}
+		//result
+		{
+			cout << endl;
+			P[0].display();
+			P[1].display();
+			cout << "banker final point :" << P[0].score() << endl;
 
-	while ( P[1].score() != -1)
-	{
-		cout << "\ndraw card?" << endl;
+			cout << "player final point :" << P[1].score() << endl;
+			cout << endl;
+			//set_record(P[0], P[1], 
+
+			win_check(P[0], P[3]);
+		}
+
+		cout << "win: " << win << endl;
+		cout << "lose: " << lose << endl;
+		cout << "draw " << draw << endl;
+		cout <<"cards remain: " <<list.member.size() << endl;
+		cout << "\nend game?" << endl;
+		if (list.member.size() <= 104)
+		{
+			list.member.clear();
+			JoinGame(player_num, list);
+		}
 		if (yes_no())
 		{
-			dealing(P[1]);
+			double wr;
+			wr = win / (win + draw + lose)*100.0;
 
-			broadcast_info(P[1], true);
-			P[1].display();
-			cout << "player current point :" << P[1].score() << endl;
-			
+			fprintf(f, "result:\n\ngame set: %.0f \nwin: %.0f\nlose: %.0f\ndraw: %.0f\n\n", (win + draw + lose), win, lose, draw);
+			fprintf(f, "win rate: %.3f%%\n", wr);
+			fprintf(f, "AI's point bigger: %d \nPlayer's point bigger: %d\n", AI_cards_bigger, Playercardsbigger);
+			fprintf(f, "AI burst: %d\nPlayer burst: %d\nFive cards: %d\n\n", AI_Burst, Player_Burst, Five);
+			fprintf(f, "AI's average score (without burst): %.3f \n", AI_ave / A_num);
+			fprintf(f, "AI's average card hold: %.3f \n", AC / (win + draw + lose));
+			fprintf(f, "Plyer's average score (without burst): %.3f \n", Player_ave / P_num);
+			fprintf(f, "Player's average card hold: %.3f \n", PC / (win + draw + lose));
+			return 0;
+
 		}
-		else
-			break;
-	}
-
-	//monitoring banker's score
-	while (P[0].score() != -1)
-	{
-		if (P[0].score() <= 17)
-		{
-			dealing(P[0]);
-			broadcast_info(P[0], true);
-		}
-		else
-			break;
-	}
-	
-	//result
-	{
-		cout << endl;
-		P[0].display();
-		P[1].display();
-		cout << "banker final point :" << P[0].score() << endl;
 		
-		cout << "player final point :" << P[1].score() << endl;
-		cout << endl;
-		//set_record(P[0], P[1], 
-		
-		win_check(P[0], P[1])	;
-	}
-	
-	cout << "win: " << win << endl;
-	cout << "lose: " <<lose<< endl;
-	cout << "draw " << draw << endl;
-	cout << "\nend game?" << endl;
-	if (yes_no())
-	{
-		double wr;
-		wr = win / (win + draw + lose)*100.0;
-		
-		fprintf(f, "result:\n\ngame set: %.0f \nwin: %.0f\nlose: %.0f\ndraw: %.0f\n\n", (win + draw + lose),win,lose,draw);
-		fprintf(f, "win rate: %.3f%%\n",wr);
-		fprintf(f, "AI's point bigger: %d \nPlayer's point bigger: %d\n", AI_cards_bigger,Playercardsbigger);
-		fprintf(f, "AI burst: %d\nPlayer burst: %d\nFive cards: %d\n\n", AI_Burst, Player_Burst,Five);
-		fprintf(f, "AI's average score (without burst): %.3f \n",AI_ave/A_num);
-		fprintf(f, "AI's average card hold: %.3f \n", AC / (win+draw+lose));
-		fprintf(f, "Plyer's average score (without burst): %.3f \n",Player_ave / P_num);
-		fprintf(f, "Player's average card hold: %.3f \n", PC / (win + draw + lose));
-		return 0;
 
 	}
-	else main();
 }
 
